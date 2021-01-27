@@ -86,6 +86,7 @@ export default class VisualEditor extends Component {
                 blocks.push ({
                     top: event.offsetY,
                     left: event.offsetX,
+                    adjustPosition: true,
                     componentKey: currentComponent.key
 
                 })
