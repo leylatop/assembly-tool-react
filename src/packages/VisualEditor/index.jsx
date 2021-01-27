@@ -11,16 +11,19 @@ const VisualConfig = createVisualEditorConfig();
 const {componentList, componentMap, registry} = VisualConfig;
 
 registry('text', {
+    key: 'text',
     lable: '文本',
     preview: () => '预览文本',
     render: ()=> '渲染文本',
 });
 registry('button', {
+    key: 'button',
     lable: '按钮',
     preview: () => {return <Button>按钮</Button>},
     render: ()=> {return <Button>渲染按钮</Button>},
 })
 registry('input', {
+    key: 'input',
     lable: '输入框',
     preview: () => {return <Input value="输入框" />},
     render: ()=> {return <Input value="输入框" />},
@@ -30,11 +33,8 @@ export default class VisualEditor extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            container: {
-                width: 800,
-                height: 500,
-            },
-            blocks: [],
+            container: this.props.container,
+            blocks: this.props.blocks,
         }
         this.blockHandler = {};
         this.containerRef = null;
@@ -84,9 +84,10 @@ export default class VisualEditor extends Component {
             drop:(event)=> {
                 const {blocks} = this.state || [];
                 blocks.push ({
-                    ...currentComponent,
                     top: event.offsetY,
-                    left: event.offsetX
+                    left: event.offsetX,
+                    componentKey: currentComponent.key
+
                 })
                 this.setState({blocks});
             }
@@ -98,7 +99,7 @@ export default class VisualEditor extends Component {
     render() {
         let {blocks, container} = this.state;
         let {width, height} = container;
-        
+        console.log(componentMap)
         return (
             <div className="visual-editor">
                 <div className="visual-editor-menu">
@@ -106,14 +107,14 @@ export default class VisualEditor extends Component {
                         componentList.map((item, index) => {
                             return (
                                 <div key={index} className="visual-editor-menu-item"
-                                draggable
-                                onDragEnd={()=> {this.blockHandler.dragend()}}
-                                onDragStart={(e)=> {this.blockHandler.dragstart(e, item)}}>
+                                    draggable
+                                    onDragEnd={()=> {this.blockHandler.dragend()}}
+                                    onDragStart={(e)=> {this.blockHandler.dragstart(e, item)}}>
                                     <span className="visual-editor-menu-item-lable">{item.lable}</span>
                                     <div className="visual-editor-menu-item-content">
-                                        {
-                                            item.preview()
-                                        }
+                                    {
+                                        item.preview()
+                                    }
                                     </div>
                                 </div>
                             )
@@ -131,10 +132,9 @@ export default class VisualEditor extends Component {
                         <div ref={(ref) => this.containerRef = ref} className="visual-editor-container" style={{width, height}}>
                         {
                             blocks.map((item, index)=> {
-                                return <VisualEditorBlock key={index} item={item}/>
+                                return <VisualEditorBlock key={index} block={item} config={{componentMap}}/>
                             })
                         }
-                        hello
                         </div>
                     </div>
                 </div>
@@ -149,5 +149,17 @@ VisualEditor.defaultProps = {
         width: 800,
         height: 500,
     },
+    blocks: [
+        {
+            top: 100,
+            left: 100,
+            componentKey: 'button'
+        },
+        {
+            top: 300,
+            left: 200,
+            componentKey: 'input'
+        },
+    ]
     
 }

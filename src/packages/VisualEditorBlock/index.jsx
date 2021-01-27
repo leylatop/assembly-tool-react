@@ -4,7 +4,9 @@ import './style'
 export default class VisualEditorBlock extends Component {
     
     render() {
-        const {top, left, lable, preview, render,} = this.props.item;
+        let {block, config} = this.props;
+        const {top, left, componentKey} = block;
+        const {render} = config.componentMap[componentKey];
         const style  = {
             top: `${top}px`,
             left: `${left}px`
@@ -18,8 +20,13 @@ export default class VisualEditorBlock extends Component {
 }
 
 VisualEditorBlock.defaultProps = {
-    item: {top: 0,
-    left: 0,}
-
+    block: {
+        top: 0,
+        left: 0,
+        componentKey: 'text'
+    },
+    config: {
+        componentMap: {}
+    }
 }
 
