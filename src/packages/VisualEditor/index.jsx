@@ -25,83 +25,80 @@ registry('input', {
     preview: () => {return <Input value="输入框" />},
     render: ()=> {return <Input value="输入框" />},
 });
-let menuDragger = {};
-
 
 export default class VisualEditor extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            currentComponent: null,
             container: {
                 width: 800,
                 height: 500,
             },
             blocks: [],
         }
+        this.blockHandler = {};
         this.containerRef = null;
-        this.dragstart = this.dragstart.bind(this);
-        this.dragenter = this.dragenter.bind(this)
-        this.dragover = this.dragover.bind(this)
-        this.dragleave = this.dragleave.bind(this)
-        this.dragend = this.dragend.bind(this)
-        this.drop = this.drop.bind(this)
+        this.menuDragger = this.menuDragger.bind(this);
     }
     
     componentDidMount() {
-        
-        this.containerRef = this.refs.container;
-        // this.containerRef = document.getElementsByClassName('visual-editor-container')[0];
-    }
-    dragstart(event, component) {
-        const {dragenter,dragover, dragleave, containerRef, drop} = this;
-        containerRef.addEventListener('dragenter', dragenter);
-        containerRef.addEventListener('dragover', dragover);
-        containerRef.addEventListener('dragleave', dragleave);
-        containerRef.addEventListener('drop', drop);
-
-        this.setState({
-            currentComponent: component
-        })
-    }
-    dragenter(event) {
-        event.dataTransfer.dropEffect = 'move';
-    }
-    dragover(event) {
-        event.preventDefault();
-        
-    }
-    dragleave(event, component) {
-        event.dataTransfer.dropEffect = 'none';
-    }
-    dragend() {
-        const {dragenter,dragover, dragleave, containerRef, drop} = this;
-        containerRef.removeEventListener('dragenter', dragenter);
-        containerRef.removeEventListener('dragover', dragover);
-        containerRef.removeEventListener('dragleave', dragleave);
-        containerRef.removeEventListener('drop', drop);
-        this.setState({
-            currentComponent: null
-        })
-    }
-    drop(event, component) {
-        let {currentComponent} = this.state;
-        console.log(currentComponent);
-        const {blocks} = this.state || [];
-        blocks.push ({
-            ...currentComponent,
-            top: event.offsetY,
-            left: event.offsetX
-        })
-        this.setState({blocks});
+        this.blockHandler= this.menuDragger();
     }
 
+    menuDragger() {
+        let currentComponent = null;
+        const {containerRef} = this;
+        const blockHandler = {
+            dragstart: (event, component)=>{
+                const {dragenter,dragover, dragleave, drop} = containerHandler;
+                containerRef.addEventListener('dragenter', dragenter);
+                containerRef.addEventListener('dragover', dragover);
+                containerRef.addEventListener('dragleave', dragleave);
+                containerRef.addEventListener('drop', drop);
+                currentComponent = component;
+            },
+            dragend: ()=> {
+                const {dragenter,dragover, dragleave, drop} = containerHandler;
+                containerRef.removeEventListener('dragenter', dragenter);
+                containerRef.removeEventListener('dragover', dragover);
+                containerRef.removeEventListener('dragleave', dragleave);
+                containerRef.removeEventListener('drop', drop);
+                currentComponent = null;
+            }
+        };
+
+        const containerHandler = {
+            // 鼠标进入容器后，设置鼠标为可放置状态
+            dragenter:(event)=> {
+                event.dataTransfer.dropEffect = 'move';
+            },
+            // 鼠标在容器中移动的时候，禁用默认事件
+            dragover:(event)=> {
+                event.preventDefault();
+            },
+            // 鼠标在拖拽过程中如果离开了容器，设置鼠标为不可放置状态
+            dragleave:(event)=> {
+                event.dataTransfer.dropEffect = 'none';
+            },
+            // 放置的时候，通过事件对象的offsetX offsetY添加一条数据
+            drop:(event)=> {
+                const {blocks} = this.state || [];
+                blocks.push ({
+                    ...currentComponent,
+                    top: event.offsetY,
+                    left: event.offsetX
+                })
+                this.setState({blocks});
+            }
+        }
+
+        return blockHandler;
+    }
 
     render() {
         let {blocks, container} = this.state;
         let {width, height} = container;
         
-        const {dragstart, dragenter, dragleave, dragend, drop} = this;
         return (
             <div className="visual-editor">
                 <div className="visual-editor-menu">
@@ -110,8 +107,8 @@ export default class VisualEditor extends Component {
                             return (
                                 <div key={index} className="visual-editor-menu-item"
                                 draggable
-                                onDragEnd={dragend}
-                                onDragStart={(e)=> {dragstart(e, item)}}>
+                                onDragEnd={()=> {this.blockHandler.dragend()}}
+                                onDragStart={(e)=> {this.blockHandler.dragstart(e, item)}}>
                                     <span className="visual-editor-menu-item-lable">{item.lable}</span>
                                     <div className="visual-editor-menu-item-content">
                                         {
@@ -131,7 +128,7 @@ export default class VisualEditor extends Component {
                 </div>
                 <div className="visual-editor-body">
                     <div className="visual-editor-content">
-                        <div ref="container" className="visual-editor-container" style={{width, height}}>
+                        <div ref={(ref) => this.containerRef = ref} className="visual-editor-container" style={{width, height}}>
                         {
                             blocks.map((item, index)=> {
                                 return <VisualEditorBlock key={index} item={item}/>
