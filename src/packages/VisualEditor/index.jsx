@@ -37,31 +37,56 @@ export default class VisualEditor extends Component {
             container: this.props.container,
             blocks: this.props.blocks,
         }
-        this.blockHandler = {};
+        this.menuBlockHandler = {};
         this.containerRef = null;
         this.menuDragger = this.menuDragger.bind(this);
         this.focusHandler = this.focusHandler.bind(this);
-        this.clearFocus = this.clearFocus.bind(this)
+        this.clearFocus = this.clearFocus.bind(this);
+        this.containerDragger = this.containerDragger.bind(this)
     }
     
     componentDidMount() {
-        this.blockHandler= this.menuDragger();
+        this.menuBlockHandler= this.menuDragger();
 
     }
 
+    // 清空选中状态
     clearFocus(block) {
         let {blocks} = this.state;
         if(blocks.leng === 0) return
+
         if(!!block) {
             blocks.forEach((item) => {
                 if(item !== block) {
                     item.focus = false;
                 }
             });
+        } else {
+            blocks.forEach((item) => {item.focus = false;});
         }
-        this.setState({blocks})  
+        this.setState({blocks})
     }
 
+    // 记录选中和未选中的block数据
+    focusData() {
+        // 选中block
+        let focus = [];
+        // 未选中block
+        let unFocus = [];
+
+        let {blocks} = this.state;
+
+        blocks.forEach((item) => {
+            if(item.focus) focus.push(item)
+            else unFocus.push(item)
+        })
+        return {
+            focus,
+            unFocus
+        }
+    }
+
+    // 左侧组件列表拖拽事件
     menuDragger() {
         let currentComponent = null;
         const {containerRef} = this;
@@ -112,6 +137,7 @@ export default class VisualEditor extends Component {
         return blockHandler;
     }
 
+    // 容器内选中事件
     focusHandler() {
         const container = {
             onMouseDown: (event) => {
@@ -120,20 +146,64 @@ export default class VisualEditor extends Component {
                 this.clearFocus();
             }
         };
+        let focusData= this.focusData();
         const block = {
             onMouseDown: (event, block) => {
                 event.stopPropagation();
                 event.preventDefault();
+                // 当前未选中，点击后选中，若没按住shift键，则清楚其他block的选中状态
+                console.log('block.focus', block.focus);
+                console.log('event.shiftKey', event.shiftKey);
+
+                /**
+                 * 第二种方法，比较麻烦，优化代码的时候再整理一下
+                 */
+                // 未选中状态
+                // if(!block.focus) {
+                //     if(event.shiftKey) {
+                //         if(focusData.focus.leng > 0) {
+                //             focusData.focus.forEach((item)=> {
+                //                 this.clearFocus(item);
+                //             })
+                //         }
+                //     } else {
+                //         this.clearFocus()
+                //     }
+                //     block.focus = true;
+                // }
+                // // 当前已选中 
+                // else {
+                //     if(event.shiftKey) {
+                //         if(focusData.focus.leng > 0) {
+                //             focusData.focus.forEach((item)=> {
+                //                 this.clearFocus(item);
+                //             })
+                //         }
+                //     }
+                //     block.focus = false;
+                // }
+                // this.forceUpdate();
                 // 如果按住了shiftkey，则要选中多个block
                 if(event.shiftKey) {
-                    block.focus = !block.focus;
+                    // 此时没有选中的，则选中；若此时有选中的，则改变block的状态
+                    if(focusData.focus.leng <=1) {
+                        block.focus = true;
+                    } else {
+                        block.focus = !block.focus;
+                    }
                     this.forceUpdate();
                 } 
                 // 否则除了当前block，其他的都设置为未选中的状态
                 else {
-                    block.focus = true;
-                    this.clearFocus(block);
+                    // 如果该block没有被选中，才清空其他选中的
+                    // 否则不做任何不做任何事情，防止拖拽多个block，取消其他block的选中状态
+                    if(!block.focus) {
+                        block.focus = true;
+                        this.clearFocus(block);
+                    }
                 }
+                this.containerDragger().mouseDown(event);
+                
             }
         }
         return {
@@ -141,11 +211,46 @@ export default class VisualEditor extends Component {
         }
     }
 
+    // container内拖拽事件
+    containerDragger() {
+        let dragState = {
+            startX: 0,
+            startY: 0,
+            startPos: [],
+        };
+        let focusData= this.focusData();
+        const mouseDown = (event)=> {
+            dragState.startX= event.clientX;
+            dragState.startY = event.clientY;
+            dragState.startPos = focusData.focus.map(({top, left})=> {return {top, left}})
+            console.log(dragState)
+            document.addEventListener('mousemove', mouseMove);
+            document.addEventListener('mouseup', mouseUp);
+        }
+        const mouseMove = (event)=>  {
+            const durX = event.clientX - dragState.startX;
+            const durY = event.clientY - dragState.startY;
+            focusData.focus.map((block, index) => {
+                block.top = dragState.startPos[index].top + durY;
+                block.left = dragState.startPos[index].left + durX
+            });
+            this.forceUpdate();
+        }
+        const mouseUp = ()=> {
+            document.removeEventListener('mousemove', mouseMove);
+            document.removeEventListener('mouseup', mouseUp);
+            dragState.startX= 0;
+            dragState.startY = 0;
+        }
+        return {
+            mouseDown
+        }
+    }
+
     render() {
         let {blocks, container} = this.state;
         let {width, height} = container;
         let { focusHandler} = this;
-        console.log('object')
         return (
             <div className="visual-editor">
                 <div className="visual-editor-menu">
@@ -154,8 +259,8 @@ export default class VisualEditor extends Component {
                             return (
                                 <div key={index} className="visual-editor-menu-item"
                                     draggable
-                                    onDragEnd={()=> {this.blockHandler.dragend()}}
-                                    onDragStart={(e)=> {this.blockHandler.dragstart(e, item)}}>
+                                    onDragEnd={()=> {this.menuBlockHandler.dragend()}}
+                                    onDragStart={(e)=> {this.menuBlockHandler.dragstart(e, item)}}>
                                     <span className="visual-editor-menu-item-lable">{item.lable}</span>
                                     <div className="visual-editor-menu-item-content">
                                     {item.preview()}
