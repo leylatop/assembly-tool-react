@@ -127,6 +127,23 @@
 
             .visual-editor-block {
                 position: absolute;
+
+                &::after {
+                    @space:-3px;
+                    position: absolute;
+                    top: @space;
+                    left: @space;
+                    right: @space;
+                    bottom: @space;
+                    content: '';
+                    z-index: 2;
+                }
+            }
+            
+            .visual-editor-block-focus {
+                &::after {
+                    border: 1px dashed @primary;
+                }
             }
         }
     }

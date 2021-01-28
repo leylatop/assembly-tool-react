@@ -13,6 +13,7 @@ export default class VisualEditorBlock extends Component {
     componentDidMount() {
         let {block} = this.state;
         let {adjustPosition} = block;
+        // 添加组件时候，自动调整位置
         if(adjustPosition === true) {
             let {offsetWidth, offsetHeight} = this.refs.blockContainer;
             block.left =  block.left - offsetWidth / 2;
@@ -27,14 +28,15 @@ export default class VisualEditorBlock extends Component {
     
     render() {
         let {block, config} = this.state;
-        const {top, left, componentKey} = block;
+        const {top, left, componentKey, focus} = block;
         const {render} = config.componentMap[componentKey];
         const style  = {
             top: `${top}px`,
             left: `${left}px`
         }
+        let isFocus = focus ? 'visual-editor-block-focus' : '';
         return (
-            <div ref='blockContainer' className="visual-editor-block" style={style}>
+            <div ref='blockContainer' className={`visual-editor-block ${isFocus}`} style={style}>
                 {render()}
             </div>
         )
@@ -46,7 +48,8 @@ VisualEditorBlock.defaultProps = {
         top: 0,
         left: 0,
         componentKey: 'text',
-        adjustPosition: true
+        adjustPosition: true,       // 是否居中
+        focus: false,               // 是否为选中状态
     },
     config: {
         componentMap: {}

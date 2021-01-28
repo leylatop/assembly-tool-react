@@ -5,7 +5,8 @@ import VisualEditorBlock from '../VisualEditorBlock';
 import 'antd/dist/antd.css';
 import './style/index';
 
-import createVisualEditorConfig from '../utils/createVisualEditorConfig.js'
+import createVisualEditorConfig from '../utils/createVisualEditorConfig.js';
+import createNewBlock from '../utils/createNewBlock.js';
 const VisualConfig = createVisualEditorConfig();
 
 const {componentList, componentMap, registry} = VisualConfig;
@@ -83,13 +84,11 @@ export default class VisualEditor extends Component {
             // 放置的时候，通过事件对象的offsetX offsetY添加一条数据
             drop:(event)=> {
                 const {blocks} = this.state || [];
-                blocks.push ({
+                blocks.push (createNewBlock({
                     top: event.offsetY,
                     left: event.offsetX,
-                    adjustPosition: true,
-                    componentKey: currentComponent.key
-
-                })
+                    component: currentComponent
+                }))
                 this.setState({blocks});
             }
         }
@@ -154,12 +153,15 @@ VisualEditor.defaultProps = {
         {
             top: 100,
             left: 100,
-            componentKey: 'button'
+            componentKey: 'button',
+            focus: true,
+
         },
         {
             top: 300,
             left: 200,
-            componentKey: 'input'
+            componentKey: 'input',
+            focus: true
         },
     ]
     
