@@ -40,10 +40,26 @@ export default class VisualEditor extends Component {
         this.blockHandler = {};
         this.containerRef = null;
         this.menuDragger = this.menuDragger.bind(this);
+        this.focusHandler = this.focusHandler.bind(this);
+        this.clearFocus = this.clearFocus.bind(this)
     }
     
     componentDidMount() {
         this.blockHandler= this.menuDragger();
+
+    }
+
+    clearFocus(block) {
+        let {blocks} = this.state;
+        if(blocks.leng === 0) return
+        if(!!block) {
+            blocks.forEach((item) => {
+                if(item !== block) {
+                    item.focus = false;
+                }
+            });
+        }
+        this.setState({blocks})  
     }
 
     menuDragger() {
@@ -96,10 +112,40 @@ export default class VisualEditor extends Component {
         return blockHandler;
     }
 
+    focusHandler() {
+        const container = {
+            onMouseDown: (event) => {
+                event.stopPropagation();
+                event.preventDefault();
+                this.clearFocus();
+            }
+        };
+        const block = {
+            onMouseDown: (event, block) => {
+                event.stopPropagation();
+                event.preventDefault();
+                // 如果按住了shiftkey，则要选中多个block
+                if(event.shiftKey) {
+                    block.focus = !block.focus;
+                    this.forceUpdate();
+                } 
+                // 否则除了当前block，其他的都设置为未选中的状态
+                else {
+                    block.focus = true;
+                    this.clearFocus(block);
+                }
+            }
+        }
+        return {
+            container, block
+        }
+    }
+
     render() {
         let {blocks, container} = this.state;
         let {width, height} = container;
-        console.log(componentMap)
+        let { focusHandler} = this;
+        console.log('object')
         return (
             <div className="visual-editor">
                 <div className="visual-editor-menu">
@@ -112,9 +158,7 @@ export default class VisualEditor extends Component {
                                     onDragStart={(e)=> {this.blockHandler.dragstart(e, item)}}>
                                     <span className="visual-editor-menu-item-lable">{item.lable}</span>
                                     <div className="visual-editor-menu-item-content">
-                                    {
-                                        item.preview()
-                                    }
+                                    {item.preview()}
                                     </div>
                                 </div>
                             )
@@ -129,10 +173,10 @@ export default class VisualEditor extends Component {
                 </div>
                 <div className="visual-editor-body">
                     <div className="visual-editor-content">
-                        <div ref={(ref) => this.containerRef = ref} className="visual-editor-container" style={{width, height}}>
+                        <div ref={(ref) => this.containerRef = ref} className="visual-editor-container" style={{width, height}} onMouseDown={focusHandler().container.onMouseDown}>
                         {
                             blocks.map((item, index)=> {
-                                return <VisualEditorBlock key={index} block={item} config={{componentMap}}/>
+                                return <VisualEditorBlock key={index} block={item} config={{componentMap}} onMouseDownBlock={focusHandler().block.onMouseDown}/>
                             })
                         }
                         </div>
@@ -151,10 +195,16 @@ VisualEditor.defaultProps = {
     },
     blocks: [
         {
+            top: 0,
+            left: 0,
+            componentKey: 'text',
+            focus: false,
+        },
+        {
             top: 100,
             left: 100,
             componentKey: 'button',
-            focus: true,
+            focus: false,
 
         },
         {

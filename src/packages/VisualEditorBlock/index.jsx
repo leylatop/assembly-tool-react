@@ -6,7 +6,8 @@ export default class VisualEditorBlock extends Component {
         super(props);
         this.state = {
             block: this.props.block,
-            config: this.props.config
+            config: this.props.config,
+            onMouseDownBlock: this.props.onMouseDownBlock
         }
     }
 
@@ -27,7 +28,8 @@ export default class VisualEditorBlock extends Component {
     }
     
     render() {
-        let {block, config} = this.state;
+        let {block, config,onMouseDownBlock} = this.state;
+        
         const {top, left, componentKey, focus} = block;
         const {render} = config.componentMap[componentKey];
         const style  = {
@@ -36,7 +38,7 @@ export default class VisualEditorBlock extends Component {
         }
         let isFocus = focus ? 'visual-editor-block-focus' : '';
         return (
-            <div ref='blockContainer' className={`visual-editor-block ${isFocus}`} style={style}>
+            <div ref='blockContainer' className={`visual-editor-block ${isFocus}`} style={style} onMouseDown={(e)=> {onMouseDownBlock(e, block)}}>
                 {render()}
             </div>
         )
@@ -53,6 +55,7 @@ VisualEditorBlock.defaultProps = {
     },
     config: {
         componentMap: {}
-    }
+    },
+    onMouseDownBlock: ()=>{}
 }
 
