@@ -154,35 +154,6 @@ export default class VisualEditor extends Component {
                 // 当前未选中，点击后选中，若没按住shift键，则清楚其他block的选中状态
                 console.log('block.focus', block.focus);
                 console.log('event.shiftKey', event.shiftKey);
-
-                /**
-                 * 第二种方法，比较麻烦，优化代码的时候再整理一下
-                 */
-                // 未选中状态
-                // if(!block.focus) {
-                //     if(event.shiftKey) {
-                //         if(focusData.focus.leng > 0) {
-                //             focusData.focus.forEach((item)=> {
-                //                 this.clearFocus(item);
-                //             })
-                //         }
-                //     } else {
-                //         this.clearFocus()
-                //     }
-                //     block.focus = true;
-                // }
-                // // 当前已选中 
-                // else {
-                //     if(event.shiftKey) {
-                //         if(focusData.focus.leng > 0) {
-                //             focusData.focus.forEach((item)=> {
-                //                 this.clearFocus(item);
-                //             })
-                //         }
-                //     }
-                //     block.focus = false;
-                // }
-                // this.forceUpdate();
                 // 如果按住了shiftkey，则要选中多个block
                 if(event.shiftKey) {
                     // 此时没有选中的，则选中；若此时有选中的，则改变block的状态
