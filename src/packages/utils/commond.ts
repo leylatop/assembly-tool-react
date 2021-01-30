@@ -1,35 +1,42 @@
-import { CommandExecute } from './commond';
-import { stat } from "fs"
+// // import { CommandExecute } from './commond';
+// import React, {useState, useEffect} from 'react';
 
-export interface CommandExecute {
-    undo: () => void,
-    redo: () => void,
-}
+// export interface CommandExecute {
+//     undo: () => void,
+//     redo: () => void,
+// }
 
-export interface Command {
-    name: string,
-    keyboard?: string | string[],
-    excute:(...args: any[]) => CommandExecute,
-}
+// export interface Command {
+//     name: string,
+//     keyboard?: string | string[],
+//     excute:(...args: any[]) => CommandExecute,
+// }
 
-export interface CommandManager {
-    queue: CommandExecute[],
-    current: number,
-}
+// export interface CommandManager {
+//     queue: CommandExecute[],
+//     current: number,
+// }
 
-export function useCommander() {
-    queue: [] as CommandExecute[],
-    const state = {
-        commands: {} as Record<string, (...args: any[])=>void>
-    }
+// export function useCommander() {
+//     // queue: [] as CommandExecute[],
+//     let [state, setState] = useState({
+//         commands:{} as Record<string, (...args: any[])=>void>
+//     });
+//     // const state = {
+//     //     commands: {} as Record<string, (...args: any[])=>void>
+//     // }
 
-    const regitstry = (command: Command) => {
-        state.commands[command.name] = (...args) => {
-            command.excute(...args);
-        }
-    }
+//     // useEffect(()=> {
 
-    return {
-        regitstry
-    }
-}
+//     // })
+
+//     setState = (command: Command) => {
+//         state.commands[command.name] = (...args) => {
+//             command.excute(...args);
+//         }
+//     }
+
+//     return {
+//         setState,
+//     }
+// }

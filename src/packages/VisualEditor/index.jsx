@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import {Button, Input  } from 'antd';
 import VisualEditorBlock from '../VisualEditorBlock';
+import useVisualCommand from '../utils/commandQueueHandler';
 
 import 'antd/dist/antd.css';
 import './style/index';
@@ -29,6 +30,23 @@ registry('input', {
     preview: () => {return <Input value="输入框" />},
     render: ()=> {return <Input value="输入框" />},
 });
+function EditorHeader() {
+    const commander = useVisualCommand();
+    const buttons = [
+        {label: '撤销', icon: 'icon-back', hander: commander.undo, tip: 'ctrl+z'},
+        {label: '重做', icon: 'icon-forward', hander: commander.redo, tip: 'ctrl+y, ctrl+shift+z'},
+        {label: '删除', icon: 'icon-delete', hander: ()=>commander.delete(), tip: 'ctrl+d, backspace, delete'},
+    ];
+    return <React.StrictMode>
+        {
+            buttons.map((btn, index)=> {
+                return (
+                    <div className="visual-editor-head-button" key={index} onClick={btn.hander}>{btn.label}</div>
+                )
+            })
+        }
+    </React.StrictMode>
+}
 
 export default class VisualEditor extends Component {
     constructor(props) {
@@ -47,7 +65,6 @@ export default class VisualEditor extends Component {
     
     componentDidMount() {
         this.menuBlockHandler= this.menuDragger();
-
     }
 
     // 清空选中状态
@@ -222,6 +239,7 @@ export default class VisualEditor extends Component {
         let {blocks, container} = this.state;
         let {width, height} = container;
         let { focusHandler} = this;
+        
         return (
             <div className="visual-editor">
                 <div className="visual-editor-menu">
@@ -242,7 +260,7 @@ export default class VisualEditor extends Component {
                     }
                 </div>
                 <div className="visual-editor-head">
-                    visual-editor-head
+                <EditorHeader />
                 </div>
                 <div className="visual-editor-operator">
                     visual-editor-operator
